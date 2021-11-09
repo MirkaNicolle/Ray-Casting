@@ -8,8 +8,9 @@ Proyecto 3 Ray Caster
 
 '''
 
-import pygame
+import pygame, sys
 from math import cos, sin, pi, atan2
+from pygame import mixer
 
 RAY_AMOUNT = 100
 SPRITE_BACKGROUND = (152, 0, 136, 255)
@@ -237,67 +238,155 @@ rCaster = Raycaster(screen)
 rCaster.load_map("map.txt")
 
 clock = pygame.time.Clock()
-font = pygame.font.SysFont("Arial", 25)
+font = pygame.font.Font('freesansbold.ttf', 30)
+
+click = False
+
+def menu():
+
+    while True:
+
+        
+        #fondo
+        fondo = pygame.image.load('menu.jpg')
+
+        #musica
+        mixer.music.load('mariobros.wav')
+        mixer.music.play(-1)
+
+        #encabezado
+        pygame.display.set_caption("Mario chafita")
+
+        #titulo
+        textX = 130
+        textY = 40
+
+        def show_title(x,y):
+            title = font.render("Mario bros chafita", True, (255,255,255))
+            screen.blit(title, (x,y))
+
+        screen.blit(fondo, (0,0))
+        show_title(textX,textY)
+
+        def draw_text(text, font, color, surface, x, y):
+            textobj = font.render(text, (255,255,255), color)
+            textrect = textobj.get_rect()
+            textrect.topleft = (x, y)
+            surface.blit(textobj, textrect)
+
+        #Seleccionar los botones de inicio y salida utilizando la posición y click del mouse
+        mx, my = pygame.mouse.get_pos()
+    
+        button_1 = pygame.Rect(240, 200, 200, 50)
+        draw_text('Inicio', font, (255, 255, 255), screen, 220, 200)
+
+        button_2 = pygame.Rect(240, 250, 200, 50)
+        draw_text('Salir', font, (255, 255, 255), screen, 220, 250)
+
+        if button_1.collidepoint((mx, my)):
+            #resaltado de boton
+            resaltado = pygame.Rect(210, 200, 100, 40)
+            pygame.draw.rect(screen, (255, 127, 0), resaltado)
+            if click:
+                gameLoop()
+
+        if button_2.collidepoint((mx, my)):
+            #resaltado de boton
+            resaltado = pygame.Rect(210, 250, 100, 40)
+            pygame.draw.rect(screen, (255, 127, 0), resaltado)
+            if click:
+                exit()
+
+        #funcionamito escencial
+        click = False
+        for ev in pygame.event.get():
+            if ev.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                if ev.button == 1:
+                    click = True
+            if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_UP:
+                    mx = 500
+                    my = 170
+            if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_DOWN:
+                    mx = 500
+                    my = 320
+            if ev.type == pygame.KEYDOWN:
+                if ev.key == pygame.K_SPACE:
+                    click = True
+
+        pygame.display.update()
+        clock.tick(60)
+
 
 def updateFPS():
     fps = str(int(clock.get_fps()))
     fps = font.render(fps, 1, pygame.Color("white"))
     return fps
 
-isRunning = True
-while isRunning:
+def gameLoop():
+    isRunning = True
+    while isRunning:
 
-    for ev in pygame.event.get():
-        if ev.type == pygame.QUIT:
-            isRunning = False
-
-        elif ev.type == pygame.KEYDOWN:
-            newX = rCaster.player['x']
-            newY = rCaster.player['y']
-            forward = rCaster.player['angle'] * pi / 180
-            right = (rCaster.player['angle'] + 90) * pi / 180
-
-            if ev.key == pygame.K_ESCAPE:
+        for ev in pygame.event.get():
+            if ev.type == pygame.QUIT:
                 isRunning = False
-            elif ev.key == pygame.K_w:
-                newX += cos(forward) * rCaster.stepSize
-                newY += sin(forward) * rCaster.stepSize
-            elif ev.key == pygame.K_s:
-                newX -= cos(forward) * rCaster.stepSize
-                newY -= sin(forward) * rCaster.stepSize
-            elif ev.key == pygame.K_a:
-                newX -= cos(right) * rCaster.stepSize
-                newY -= sin(right) * rCaster.stepSize
-            elif ev.key == pygame.K_d:
-                newX += cos(right) * rCaster.stepSize
-                newY += sin(right) * rCaster.stepSize
-            elif ev.key == pygame.K_q:
-                rCaster.player['angle'] -= rCaster.turnSize
-            elif ev.key == pygame.K_e:
-                rCaster.player['angle'] += rCaster.turnSize
 
-            i = int(newX/rCaster.blocksize)
-            j = int(newY/rCaster.blocksize)
+            elif ev.type == pygame.KEYDOWN:
+                newX = rCaster.player['x']
+                newY = rCaster.player['y']
+                forward = rCaster.player['angle'] * pi / 180
+                right = (rCaster.player['angle'] + 90) * pi / 180
 
-            if rCaster.map[j][i] == ' ':
-                rCaster.player['x'] = newX
-                rCaster.player['y'] = newY
+                if ev.key == pygame.K_ESCAPE:
+                    isRunning = False
+                elif ev.key == pygame.K_w:
+                    newX += cos(forward) * rCaster.stepSize
+                    newY += sin(forward) * rCaster.stepSize
+                elif ev.key == pygame.K_s:
+                    newX -= cos(forward) * rCaster.stepSize
+                    newY -= sin(forward) * rCaster.stepSize
+                elif ev.key == pygame.K_a:
+                    newX -= cos(right) * rCaster.stepSize
+                    newY -= sin(right) * rCaster.stepSize
+                elif ev.key == pygame.K_d:
+                    newX += cos(right) * rCaster.stepSize
+                    newY += sin(right) * rCaster.stepSize
+                elif ev.key == pygame.K_q:
+                    rCaster.player['angle'] -= rCaster.turnSize
+                elif ev.key == pygame.K_e:
+                    rCaster.player['angle'] += rCaster.turnSize
 
-    # Techo
-    screen.fill(pygame.Color("saddlebrown"), (0, 0,  width, int(height / 2)))
+                i = int(newX/rCaster.blocksize)
+                j = int(newY/rCaster.blocksize)
 
-    # Piso
-    screen.fill(pygame.Color("dimgray"), (0, int(height / 2),  width, int(height / 2)))
+                if rCaster.map[j][i] == ' ':
+                    rCaster.player['x'] = newX
+                    rCaster.player['y'] = newY
+
+        # Techo
+        screen.fill(pygame.Color("saddlebrown"), (0, 0,  width, int(height / 2)))
+
+        # Piso
+        screen.fill(pygame.Color("dimgray"), (0, int(height / 2),  width, int(height / 2)))
 
 
-    rCaster.render()
+        rCaster.render()
 
-    #FPS
-    screen.fill(pygame.Color("black"), (0,0,30,30) )
-    screen.blit(updateFPS(), (0,0))
-    clock.tick(60)
+        #FPS
+        screen.fill(pygame.Color("black"), (0,0,30,30) )
+        screen.blit(updateFPS(), (0,0))
+        clock.tick(60)
 
 
-    pygame.display.flip()
+        pygame.display.flip()
 
+menu() 
 pygame.quit()
